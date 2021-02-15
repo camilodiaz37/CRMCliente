@@ -6,18 +6,31 @@ import ResumenPedido from "../components/pedidos/resumenPedido";
 import Total from "../components/pedidos/total";
 import { useMutation } from "@apollo/client";
 import { NUEVO_PEDIDO } from "../data/mutations/nuevoPedido";
-import {useRouter} from 'next/router'
-import Swal from 'sweetalert2'
+import { OBTENER_PEDIDOS_USUARIO } from "../data/queries/obtenerPedidosUsuario";
+import { useRouter } from "next/router";
+import Swal from "sweetalert2";
 
 import PedidoContext from "../context/pedidos/PedidoContext";
 const NuevoPedido = () => {
-    const router = useRouter()
-    const [mensaje, setMensaje] = useState(null)
+  const router = useRouter();
+  const [mensaje, setMensaje] = useState(null);
   //utilizar context y usar sus valores
   const pedidoContext = useContext(PedidoContext);
   const { cliente, productos, total } = pedidoContext;
- 
-  const [nuevoPedido] = useMutation(NUEVO_PEDIDO);
+
+  const [nuevoPedido] = useMutation(NUEVO_PEDIDO, {
+    update(cache, { data: { nuevoPedido } }) {
+      const { obtenerPedidosVendedor } = cache.readQuery({
+        query: OBTENER_PEDIDOS_USUARIO,
+      });
+      cache.writeQuery({
+        query: OBTENER_PEDIDOS_USUARIO,
+        data: {
+          obtenerPedidosVendedor: [...obtenerPedidosVendedor, nuevoPedido],
+        },
+      });
+    },
+  });
 
   const validarPedido = () => {
     return !productos.every((producto) => producto.cantidad > 0) ||
@@ -43,24 +56,25 @@ const NuevoPedido = () => {
         },
       });
       //mostrar alerta
-      Swal.fire("Correcto", "El pedido se registro correctamente", "success")
+      Swal.fire("Correcto", "El pedido se registro correctamente", "success");
       //redireccionar
-      router.push("/Pedidos")
+      router.push("/Pedidos");
     } catch (error) {
-      setMensaje(error.message.replace("Error: ",""));
+      console.log(error)
+     /*  setMensaje(error.message.replace("Error: ", "")); */
 
-      setTimeout(()=>{
-        setMensaje(null)
-      },[5000])
+      setTimeout(() => {
+        setMensaje(null);
+      }, [5000]);
     }
   };
-  const mostrarMensaje=()=>{
-      return(
-          <div className="bg-white py-2 px-3 w-full my-3 max-w-sm text-center mx-auto">
-              <p>{mensaje}</p>
-          </div>
-      )
-  }
+  const mostrarMensaje = () => {
+    return (
+      <div className="bg-white py-2 px-3 w-full my-3 max-w-sm text-center mx-auto">
+        <p>{mensaje}</p>
+      </div>
+    );
+  };
   return (
     <Layout>
       <h1 className="text-2xl text-gray-800 font-light">Nuevo pedido</h1>
