@@ -2,20 +2,53 @@ import React from "react";
 import { useRouter } from "next/router";
 import { Formik } from "formik";
 import Layout from "../../components/Layout";
-import { useQuery } from "@apollo/client";
+import Swal from "sweetalert2";
+import { useQuery, useMutation } from "@apollo/client";
 import { OBTENER_CLIENTE } from "../../data/queries/obtenerCliente";
+import { ACTUALIZAR_CLIENTE } from "../../data/mutations/actualizarCliente";
 import * as Yup from "yup";
+import { OBTENER_CLIENTES_USUARIO } from "../../data/queries/obtenerClientesUsuario";
 
 const editarCliente = () => {
   const router = useRouter();
   const {
-    query: { id },
+    query: { pid },
   } = router;
-  console.log(id);
+
+  if(!router.query){
+    console.log(router.query.pid)
+    return "...loading"
+  }
 
   const { data, loading, error } = useQuery(OBTENER_CLIENTE, {
     variables: {
-      id,
+      id:pid,
+    },
+  });
+  const [actualizarCliente] = useMutation(ACTUALIZAR_CLIENTE, {
+    update(cache, { data: { actualizarCliente } }) {
+      //actualizar clientes
+      const { obtenerClientesVendedor } = cache.readQuery({
+        query: OBTENER_CLIENTES_USUARIO,
+      });
+      const clientesActualizados = obtenerClientesVendedor.map((cliente) =>
+        cliente.id === pid ? actualizarCliente : cliente
+      );
+
+      cache.writeQuery({
+        query: OBTENER_CLIENTES_USUARIO,
+        data: {
+          obtenerClientesVendedor: clientesActualizados,
+        },
+      });
+      //actualizar cliente actual
+      cache.writeQuery({
+        query: OBTENER_CLIENTE,
+        variables: { id:pid },
+        data: {
+          obtenerCliente: actualizarCliente,
+        },
+      });
     },
   });
   //schema de validacion
@@ -32,6 +65,40 @@ const editarCliente = () => {
 
   const { obtenerCliente } = data;
 
+  //modificar el cliente en bd
+  const actualizarInfoCliente = async (valores) => {
+    const { nombre, apellido, empresa, email, telefono } = valores;
+    try {
+      const { data } = await actualizarCliente({
+        variables: {
+          id,
+          input: {
+            nombre,
+            apellido,
+            empresa,
+            email,
+            telefono,
+          },
+        },
+      });
+
+      console.log(data);
+      //sweet alert
+      Swal.fire(
+        "Cliente actualizado",
+        "El cliente se ha actualizado correctamente",
+        "success"
+      );
+
+      //redirect
+      setTimeout(() => {
+        router.push("/");
+      }, [1500]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <Layout>
       <h1 className="text-2xl text-gray-800 font-light">Editar cliente</h1>
@@ -42,8 +109,8 @@ const editarCliente = () => {
             validationSchema={validationSchema}
             enableReinitialize
             initialValues={obtenerCliente}
-            onSubmit={(valores, funciones)=>{
-                console.log(valores)
+            onSubmit={(valores, funciones) => {
+              actualizarInfoCliente(valores);
             }}
           >
             {(props) => {

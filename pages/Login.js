@@ -43,15 +43,16 @@ const Login = () => {
         //mensaje de inicio de sesion correcto
         guardarMensaje("Verificando...")
         //guardar el token en el localstorage
-        const {token} = data.autenticarUsuario;
-        localStorage.setItem("token", token)
+        setTimeout(() => {
+          const {token} = data.autenticarUsuario;
+          localStorage.setItem('token', token)
+        }, 1500)
         
         //redireccionar
-        setTimeout(()=>{
+        setTimeout(async ()=>{
           guardarMensaje(null)
-          router.push("/")
-
-        },[1500])
+          await router.push("/")
+        },[2000])
       } catch (error) {
         guardarMensaje(error.message)
         setTimeout(()=>{
