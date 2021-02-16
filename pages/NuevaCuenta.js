@@ -5,6 +5,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useMutation } from "@apollo/client";
 import {NUEVO_USUARIO} from '../data/mutations/nuevoUsuario'
+import Link from "next/link";
 
 const NuevaCuenta = () => {
   //state para el mensaje
@@ -182,6 +183,9 @@ const NuevaCuenta = () => {
                 className="bg-gray-800 w-full mt-5 p-2 text-white uppercas hover:bg-gray-900 cursor-pointer"
                 value="Crear nueva cuenta"
               />
+              <Link href="/Login">
+            <a className="text-blue-700 block text-center mt-4 font-bold">Volver</a>
+          </Link>
             </form>
           </div>
         </div>

@@ -5,6 +5,7 @@ import * as Yup from "yup";
 import { useMutation, gql } from "@apollo/client";
 import {useRouter} from "next/router"
 import {AUTENTICAR_USUARIO} from '../data/mutations/autenticarUsuario'
+import Link from "next/link";
 
 const Login = () => {
   //routing
@@ -132,6 +133,9 @@ const Login = () => {
                 className="bg-gray-800 w-full mt-5 p-2 text-white uppercas hover:bg-gray-900 cursor-pointer"
                 value="Login"
               />
+          <Link href="/NuevaCuenta">
+            <a className="text-blue-700 block text-center mt-4 font-bold">Registrarse</a>
+          </Link>
             </form>
           </div>
         </div>
